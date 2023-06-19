@@ -1,12 +1,14 @@
-import { Fragment } from 'react'
 import './App.css'
+import { LegoArtProvider } from './Context/LegoArtContext'
 
 function App() {
 
   return (
-    <Fragment>
-      TODO
-    </Fragment>
+    <LegoArtProvider>
+      <main>
+        TODO
+      </main>
+    </LegoArtProvider>
   )
 }
 

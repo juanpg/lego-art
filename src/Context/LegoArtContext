@@ -1,0 +1,52 @@
+import { createContext, useState } from "react";
+
+const colors = {
+  red: '#FF0000',
+  green: '#00FF00',
+  blue: '#0000FF',
+  white: '#FFFFFF',
+  black: '#000000'
+};
+
+const LegoArtContext = createContext({
+  history: [],
+  currentStep: -1,
+  redoStep: () => {},
+  undoStep: () => {},
+  colors: colors,
+  currentColor: null,
+  changeColor: () => {}
+});
+
+const LegoArtProvider = function({ children }) {
+  const [history, setHistory] = useState([]);
+  const [currentStep, setCurrentStep] = useState(-1);
+  const [currentColor, setCurrentColor] = useState('');
+  const redoStep = () => {
+
+  }
+  const undoStep = () => {
+
+  }
+  const changeColor = (newColor) => {
+    setColor(newColor);
+  }
+
+  return (
+    <LegoArtContext.Provider 
+      value={{
+        history,
+        currentStep,
+        redoStep,
+        undoStep,
+        colors,
+        currentColor,
+        changeColor
+      }}
+    >
+      {children}
+    </LegoArtContext.Provider>
+  );
+}
+
+export { LegoArtContext, LegoArtProvider }
