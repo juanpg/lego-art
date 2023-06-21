@@ -4,7 +4,7 @@ const DEFAULT_COLORS = ["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "
 const PIXELS_PER_SQUARE = 20;
 const SQUARES_PER_PLATE = 16;
 
-const tools = ['pencil', 'bucket']
+const tools = ['pencil', 'bucket', 'eraser', 'picker']
 
 export const LegoArtContext = createContext({
   squaresPerPlate: SQUARES_PER_PLATE,

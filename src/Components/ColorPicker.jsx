@@ -22,6 +22,8 @@ export default function ColorPicker() {
         <Button 
           bg={currentColor} 
           borderRadius={'50%'} 
+          borderColor='black'
+          borderWidth='thin'
           size='xs'
           aria-label='Change current color'
           title='Change current color'
