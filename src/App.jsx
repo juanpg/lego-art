@@ -1,4 +1,4 @@
-import { Button, ButtonGroup, Popover, PopoverTrigger, PopoverContent, PopoverCloseButton, PopoverHeader, PopoverBody, useDisclosure, IconButton, NumberInput, FormControl, FormLabel, Flex, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Stack } from '@chakra-ui/react';
+import { Button, ButtonGroup, Popover, PopoverTrigger, PopoverContent, PopoverCloseButton, PopoverHeader, PopoverBody, useDisclosure, IconButton } from '@chakra-ui/react';
 import { useState, useContext, Fragment } from 'react';
 import { CirclePicker } from 'react-color';
 import { LuUndo2, LuRedo2, LuTrash2 } from 'react-icons/lu';
@@ -6,17 +6,16 @@ import './App.css';
 
 import { LegoArtContext } from './Context/LegoArtContext';
 import Canvas from './Components/Canvas';
+import CanvasDimensions from './Components/CanvasDimensions';
 
 function App() {
-  const { dimensions, squareSize, colors, currentColor, onColorChange } = useContext(LegoArtContext);
+  const { dimensions, squaresPerPlate, colors, currentColor, onColorChange } = useContext(LegoArtContext);
   const { isOpen, onOpen, onClose: onChangeColorClose } = useDisclosure();
 
   const [history, setHistory] = useState([
-    Array(dimensions.width * squareSize * dimensions.height * squareSize).fill(null)
+    Array(dimensions.width * squaresPerPlate * dimensions.height * squaresPerPlate).fill(null)
   ]);
   const [stepHistory, setStepHistory] = useState(0);
-  const [width, setWidth] = useState(dimensions.width);
-  const [height, setHeight] = useState(dimensions.height);
 
   const handleNewPixels = (newPixels) => {
     setHistory([...history.slice(0, stepHistory + 1), newPixels]);
@@ -33,33 +32,26 @@ function App() {
 
   const handleReset = () => {
     setHistory([
-      Array(dimensions.width * squareSize * dimensions.height * squareSize).fill(null)
+      Array(dimensions.width * squaresPerPlate * dimensions.height * squaresPerPlate).fill(null)
     ])
     setStepHistory(0)
   }
 
-  const handleColorChange = (color, event) => {
+  const handleColorChange = (color) => {
     onColorChange(color.hex);
     onChangeColorClose();
-  }
-
-  const handleWidthChange = (_, value) => {
-    setWidth(value);
-    handleReset();
-  }
-
-  const handleHeightChange = (_, value) => {
-    setHeight(value);
-    handleReset();
   }
 
   return (
     <Fragment>
       <Canvas 
-        width={width}
-        height={height}
+        width={dimensions.width}
+        height={dimensions.height}
         currentPixels={history[stepHistory]}
         onNewPixels={handleNewPixels}
+      />
+      <CanvasDimensions 
+        reset={handleReset}
       />
       <Popover
         isOpen={isOpen}
@@ -72,7 +64,7 @@ function App() {
         <PopoverContent>
           <PopoverCloseButton />
           <PopoverHeader>Change color</PopoverHeader>
-          <PopoverContent p={4} gap={4} justifyContent='center' alignItems='center'>
+          <PopoverBody p={4} gap={4} justifyContent='center' alignItems='center'>
             <CirclePicker
               color={currentColor}
               onChangeComplete={handleColorChange}
@@ -85,43 +77,10 @@ function App() {
               <Button>Add Color</Button>
               <Button>Remove Color</Button>
             </ButtonGroup>
-          </PopoverContent>
+          </PopoverBody>
         </PopoverContent>
       </Popover>
-      <div>
-        <Flex>
-          <FormControl w='100px'>
-            <FormLabel>Width: </FormLabel>
-            <NumberInput
-              defaultValue={width}
-              min={1}
-              max={5}
-              onChange={handleWidthChange}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          </FormControl>
-          <FormControl w='100px'>
-            <FormLabel>Height: </FormLabel>
-            <NumberInput
-              defaultValue={height}
-              min={1}
-              max={5}
-              onChange={handleHeightChange}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          </FormControl>
-        </Flex>
-      </div>
+      
       <div>
         <ButtonGroup>
           <IconButton 
