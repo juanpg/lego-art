@@ -1,17 +1,15 @@
-import { Button, ButtonGroup, Popover, PopoverTrigger, PopoverContent, PopoverCloseButton, PopoverHeader, PopoverBody, useDisclosure, IconButton } from '@chakra-ui/react';
+import { ButtonGroup, Container, Flex, IconButton } from '@chakra-ui/react';
 import { useState, useContext, Fragment } from 'react';
-import { CirclePicker } from 'react-color';
 import { LuUndo2, LuRedo2, LuTrash2 } from 'react-icons/lu';
 import './App.css';
 
 import { LegoArtContext } from './Context/LegoArtContext';
 import Canvas from './Components/Canvas';
 import CanvasDimensions from './Components/CanvasDimensions';
+import ColorPicker from './Components/ColorPicker';
 
 function App() {
-  const { dimensions, squaresPerPlate, colors, currentColor, onColorChange } = useContext(LegoArtContext);
-  const { isOpen, onOpen, onClose: onChangeColorClose } = useDisclosure();
-
+  const { dimensions, squaresPerPlate } = useContext(LegoArtContext);
   const [history, setHistory] = useState([
     Array(dimensions.width * squaresPerPlate * dimensions.height * squaresPerPlate).fill(null)
   ]);
@@ -37,50 +35,24 @@ function App() {
     setStepHistory(0)
   }
 
-  const handleColorChange = (color) => {
-    onColorChange(color.hex);
-    onChangeColorClose();
-  }
+  
 
   return (
-    <Fragment>
+    <Container
+      p={5}
+    >
       <Canvas 
         width={dimensions.width}
         height={dimensions.height}
         currentPixels={history[stepHistory]}
         onNewPixels={handleNewPixels}
       />
-      <CanvasDimensions 
-        reset={handleReset}
-      />
-      <Popover
-        isOpen={isOpen}
-        onOpen={onOpen}
-        onClose={onChangeColorClose}
-      >
-        <PopoverTrigger>
-          <Button bg={currentColor} borderRadius={'50%'} size='xs'></Button>
-        </PopoverTrigger>
-        <PopoverContent>
-          <PopoverCloseButton />
-          <PopoverHeader>Change color</PopoverHeader>
-          <PopoverBody p={4} gap={4} justifyContent='center' alignItems='center'>
-            <CirclePicker
-              color={currentColor}
-              onChangeComplete={handleColorChange}
-              colors={colors}
-              width='252px'
-              circleSize={28}
-              circleSpacing={14}
-            />
-            <ButtonGroup>
-              <Button>Add Color</Button>
-              <Button>Remove Color</Button>
-            </ButtonGroup>
-          </PopoverBody>
-        </PopoverContent>
-      </Popover>
-      
+      <Flex gap={3} align='center'>
+        <CanvasDimensions 
+          reset={handleReset}
+        />
+        <ColorPicker />
+      </Flex>
       <div>
         <ButtonGroup>
           <IconButton 
@@ -103,7 +75,7 @@ function App() {
           />
         </ButtonGroup>
       </div>
-    </Fragment>
+    </Container>
   );
 }
 
