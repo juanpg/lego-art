@@ -1,87 +1,57 @@
 import { createContext, useState } from "react";
 
-const defaultColors = {
-  red: '#FF0000',
-  green: '#00FF00',
-  blue: '#0000FF',
-  white: '#FFFFFF',
-  black: '#000000'
-};
+const DEFAULT_COLORS = ["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#607d8b", "#000000"];
+const DEFAULT_SIZE = 20;
+const SQUARE_SIZE = 16;
 
 const tools = ['pencil', 'bucket']
 
 export const LegoArtContext = createContext({
+  squareSize: SQUARE_SIZE,
+  dimensions: {width: 1, height: 1},
+  pixelSize: DEFAULT_SIZE,
   tools,
-  canvasSize: [],
-  image: null,
-  currentTool: '',
-  changeTool: () => {},
-  currentColor: '',
-  changeColor: () => {},
+  colors: DEFAULT_COLORS,
+  currentColor: '#000000',
+  onColorChange: () => {},
 });
 
-export const SQUARE_SIZE = 16;
-
 export function LegoArtProvider({ children }) {
-  const [canvasSize, setCanvasSize] = useState([1, 1]);
+  const [dimensions, setDimensions] = useState({width: 1, height: 1});
+  const [pixelSize, setPixelSize] = useState(DEFAULT_SIZE)
+  const [colors, setColors] = useState(DEFAULT_COLORS);
+  const [currentColor, setCurrentColor] = useState("#000000");
 
-  const imageWidth = canvasSize[0] * SQUARE_SIZE;
-  const imageHeight = canvasSize[1] * SQUARE_SIZE;
-
-  const [image, setImage] = useState(new Array(imageWidth * imageHeight).fill(colors.white));
-  const [currentTool, setCurrentTool] = useState(null);
-  const [currentColor, setCurrentColor] = useState(null);
-
-  const [history, setHistory] = useState([])
-
-  const newCanvas = (width, height) => {
-    setCanvasSize([width, height]);
-    setImage(new Array(width * SQUARE_SIZE * height * SQUARE_SIZE ).fill(colors.white))
-  }
-
-  const pixelAt = (x, y) => {
-    return image[x + y * imageWidth]
-  }
-
-  const draw = (newImage) => {
-    setHistory([...history, newImage]);
-    setImage(newImage)
-  }
-
-  const undo = () => {
-
-  }
-
-  const redo = () => {
-
-  }
-
-  const changeTool = (newTool) => {
-    if(tools[newTool]) {
-      setCurrentTool(newTool)
+  const onColorChange = (newColor) => {
+    if(colors.includes(newColor)) {
+      setCurrentColor(newColor);
     }
   }
 
-  const changeColor = (newColor) => {
+  const onColorAdd = (newColor) => {
+    if(!colors.includes(newColor)) {
+      setColors([...colors, newColor])
+    }
+  }
 
+  const onColorRemove = (color) => {
+    if(colors.includes(color)) {
+      setColors(colors.filter(c => c !== color));
+    }
   }
 
   return (
     <LegoArtContext.Provider 
       value={{
+        squareSize: SQUARE_SIZE,
+        dimensions,
+        pixelSize,
         tools,
-        canvasSize,
-        newCanvas,
-        pixelAt,
-        draw,
-        history,
-        undo,
-        redo,
-        image,
-        currentTool,
-        changeTool,
+        colors,
+        onColorAdd,
+        onColorRemove,
         currentColor,
-        changeColor
+        onColorChange
       }}
     >
       {children}
