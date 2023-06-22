@@ -1,7 +1,8 @@
 import { useContext } from "react";
-import { Button, ButtonGroup, Popover, PopoverTrigger, PopoverContent, PopoverCloseButton, PopoverHeader, PopoverBody, useDisclosure, PopoverFooter, Flex } from '@chakra-ui/react';
+import { Button, ButtonGroup, Popover, PopoverTrigger, PopoverContent, PopoverCloseButton, PopoverHeader, PopoverBody, useDisclosure, PopoverFooter, Flex, IconButton } from '@chakra-ui/react';
 import { CirclePicker } from 'react-color';
 import { LegoArtContext } from "../Context/LegoArtContext";
+import { BsFillCircleFill } from 'react-icons/bs'
 
 export default function ColorPicker() {
   const { colors, currentColor, onColorChange } = useContext(LegoArtContext);
@@ -19,7 +20,13 @@ export default function ColorPicker() {
       onClose={onChangeColorClose}
     >
       <PopoverTrigger>
-        <Button 
+        <IconButton
+          icon={<BsFillCircleFill />}
+          aria-label="Change current color"
+          title="Change current color"
+          color={currentColor}
+        />
+        {/* <Button 
           bg={currentColor} 
           borderRadius={'50%'} 
           borderColor='black'
@@ -27,7 +34,7 @@ export default function ColorPicker() {
           size='xs'
           aria-label='Change current color'
           title='Change current color'
-        />
+        /> */}
       </PopoverTrigger>
       <PopoverContent>
         <PopoverCloseButton />

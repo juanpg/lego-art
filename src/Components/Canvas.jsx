@@ -1,9 +1,15 @@
+import { useColorModeValue } from "@chakra-ui/react";
 import { useContext, useEffect, useRef, useState } from "react";
 import { LegoArtContext } from "../Context/LegoArtContext";
+import { FaRegHandPointer, FaRegHandRock } from 'react-icons/fa';
 
-const drawPixel = (ctx, {x, y, color}, pixelSize) => {
-  ctx.fillStyle = color ?? '#FFFFFF';
-  ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+const drawPixel = (ctx, {x, y, color}, pixelsPerSquare) => {
+  ctx.fillStyle = color ?? '#111111';
+  // ctx.fillRect(x * pixelsPerSquare, y * pixelsPerSquare, pixelsPerSquare, pixelsPerSquare);
+
+  ctx.beginPath();
+  ctx.arc(x * pixelsPerSquare + pixelsPerSquare / 2, y * pixelsPerSquare + pixelsPerSquare / 2, pixelsPerSquare / 2, 0, 2 * Math.PI , )
+  ctx.fill();
 }
 
 const getPixelCoords = (event, pixelsPerSquare) => {
@@ -27,21 +33,28 @@ const getIndexByCoords = (x, y, squaresPerPlate, width) => {
   return y * squaresPerPlate * width + x;
 }
 
-export default function Canvas({width, height, currentPixels, onNewPixels }) {
+export default function Canvas({currentPixels, onNewPixels }) {
   const canvasRef = useRef(null);
   const active = useRef(false);
   const [newPixels, setNewPixels] = useState(new Map)
-  const { currentColor, squaresPerPlate, pixelsPerSquare } = useContext(LegoArtContext);
+  const { dimensions, currentTool, currentColor, squaresPerPlate, pixelsPerSquare } = useContext(LegoArtContext);
+  const { width, height } = dimensions;
   
-  if(canvasRef.current) {
-    const ctx = canvasRef.current.getContext('2d');
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
-    currentPixels.forEach((color, index) => {
-      const {x, y} = getCoordsByIndex(index, squaresPerPlate, width);
-      drawPixel(ctx, {x, y, color}, pixelsPerSquare)
-    });
-  }
+  useEffect(() => {
+    if(canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+  
+      ctx.globalCompositeOperation = 'destination-under';
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+  
+      currentPixels.forEach((color, index) => {
+        const {x, y} = getCoordsByIndex(index, squaresPerPlate, width);
+        drawPixel(ctx, {x, y, color}, pixelsPerSquare)
+      });
+    }
+  }, [canvasRef, currentPixels]);  
 
   useEffect(() => {
     if(canvasRef.current) {
@@ -63,7 +76,12 @@ export default function Canvas({width, height, currentPixels, onNewPixels }) {
     if(x === null || y === null) {
       return;
     }
-    const pixel = {x, y, color: currentColor}
+
+    const pixel = {
+      x, 
+      y,  
+      color: currentTool === 'pencil' ? currentColor : '#111111'
+    }
 
     setNewPixels(m => {
       const n = new Map(m);
@@ -76,14 +94,29 @@ export default function Canvas({width, height, currentPixels, onNewPixels }) {
     if(event.button !== 0) {
       return;
     }
-    active.current = true;
 
     const {x, y} = getPixelCoords(event, pixelsPerSquare);
+
     if(x === null || y === null) {
       return;
     }
 
-    const pixel = {x, y,  color: currentColor}
+    if(currentTool === 'fill') {
+
+      return;
+    } else if(currentTool === 'picker') {
+      // Set the currentColor to the color of the selected square
+
+      return;
+    }
+    
+    active.current = true;
+
+    const pixel = {
+      x, 
+      y,  
+      color: currentTool === 'pencil' ? currentColor : '#111111'
+    }
 
     setNewPixels(m => {
       const n = new Map();
@@ -94,6 +127,10 @@ export default function Canvas({width, height, currentPixels, onNewPixels }) {
 
   const handleMouseUp = (event) => {
     active.current = false;
+
+    if(currentTool === 'picker') {
+      return;
+    }
 
     // Notify the parent that we're done painting
     const updatedPixels = [...currentPixels];
@@ -110,7 +147,10 @@ export default function Canvas({width, height, currentPixels, onNewPixels }) {
         width={pixelsPerSquare * squaresPerPlate * width - 1}
         height={pixelsPerSquare * squaresPerPlate * height - 1}
         style={{
-          border: '1px solid #000'
+          borderWidth: '5px',
+          borderStyle: 'solid',
+          borderRadius: '5px',
+          borderColor: useColorModeValue('gray.400', 'whiteAlpha.800')
         }}
         ref={canvasRef}
         onMouseDown={handleMouseDown}
