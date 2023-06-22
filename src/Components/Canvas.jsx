@@ -1,4 +1,4 @@
-import { useColorModeValue } from "@chakra-ui/react";
+import { useColorModeValue, useBreakpointValue } from "@chakra-ui/react";
 import { useContext, useEffect, useRef, useState } from "react";
 import { LegoArtContext } from "../Context/LegoArtContext";
 import { FaRegHandPointer, FaRegHandRock } from 'react-icons/fa';
@@ -39,9 +39,20 @@ export default function Canvas({currentPixels, onNewPixels }) {
   const [newPixels, setNewPixels] = useState(new Map)
   const { dimensions, currentTool, currentColor, squaresPerPlate, pixelsPerSquare } = useContext(LegoArtContext);
   const { width, height } = dimensions;
-  
+
+  const canvasSize = useBreakpointValue({
+    base: 288,
+    md: 480,
+    lg: 672,
+    xl: 768
+  });
+
+  const canvasWidth = `${canvasSize}px`;
+  const canvasHeight = `${canvasSize}px`;
+
   useEffect(() => {
     if(canvasRef.current) {
+      console.log(`pixelsPerSquare`, pixelsPerSquare, 'canvasSize', canvasSize);
       const ctx = canvasRef.current.getContext('2d');
       ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   
@@ -54,7 +65,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
         drawPixel(ctx, {x, y, color}, pixelsPerSquare)
       });
     }
-  }, [canvasRef, currentPixels]);  
+  }, [canvasRef, currentPixels, pixelsPerSquare]);  
 
   useEffect(() => {
     if(canvasRef.current) {
@@ -65,7 +76,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
         drawPixel(ctx, {x, y, color}, pixelsPerSquare)
       }
     }
-  }, [newPixels])
+  }, [newPixels, pixelsPerSquare])
 
   const handleMove = (event) => {
     if(!active.current) {
@@ -144,13 +155,14 @@ export default function Canvas({currentPixels, onNewPixels }) {
   return (
     <>
       <canvas
-        width={pixelsPerSquare * squaresPerPlate * width - 1}
-        height={pixelsPerSquare * squaresPerPlate * height - 1}
+        width={canvasWidth}
+        height={canvasHeight}
+
         style={{
           borderWidth: '5px',
           borderStyle: 'solid',
           borderRadius: '5px',
-          borderColor: useColorModeValue('gray.400', 'whiteAlpha.800')
+          borderColor: useColorModeValue('gray.400', 'whiteAlpha.800'),
         }}
         ref={canvasRef}
         onMouseDown={handleMouseDown}

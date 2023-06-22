@@ -41,7 +41,7 @@ function App() {
 
   return (
     <Container maxW='container.lg' p={0}>
-      <Flex h='100vh' py={10} mb={5}>
+      <Flex h='100vh' py={5} mb={0}>
         <VStack w='full' h='full' px={5} py={5} spacing={10} alignItems='center'>
           <Box w='full'>
             <Box margin='0 auto'>

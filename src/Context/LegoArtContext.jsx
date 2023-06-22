@@ -1,3 +1,4 @@
+import { useBreakpointValue } from "@chakra-ui/react";
 import { createContext, useState } from "react";
 import { BsPencil, BsPaintBucket, BsEraser, BsEyedropper } from 'react-icons/bs'
 import { FaRegHandPointer } from 'react-icons/fa'
@@ -42,13 +43,24 @@ export const LegoArtContext = createContext({
 
 export function LegoArtProvider({ children }) {
   const [dimensions, setDimensions] = useState({width: 1, height: 1});
-  const [pixelsPerSquare, setPixelsPerSquare] = useState(PIXELS_PER_SQUARE)
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  const pixelsPerSquare = useBreakpointValue({
+    base: [18, 30, 42, 48][zoomLevel-1] / dimensions.width ,
+    md: [30, 42, 48, 54][zoomLevel-1] / dimensions.width,
+    lg: [42, 48, 54, 60][zoomLevel-1] / dimensions.width,
+    xl: [48, 54, 60, 66][zoomLevel-1] / dimensions.width
+  });
   const [colors, setColors] = useState(DEFAULT_COLORS);
   const [currentColor, setCurrentColor] = useState("#FFFFFF");
   const [currentTool, setCurrentTool] = useState('pencil');
 
   const onDimensionsChange = (width, height) => {
     setDimensions({width, height});
+  }
+
+  const onZoomLevelChange = (zoomLevel) => {
+    setZoomLevel(zoomLevel);
   }
 
   const onColorChange = (newColor) => {
@@ -81,6 +93,8 @@ export function LegoArtProvider({ children }) {
         squaresPerPlate: SQUARES_PER_PLATE,
         dimensions,
         onDimensionsChange,
+        zoomLevel,
+        onZoomLevelChange,
         pixelsPerSquare,
         tools,
         currentTool,

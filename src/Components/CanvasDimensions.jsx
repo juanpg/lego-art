@@ -45,7 +45,7 @@ export default function CanvasDimensions({reset}) {
               <Stack>
                 <FormControl isRequired>
                   <FormLabel>Plates Width: </FormLabel>
-                  <NumberInput defaultValue={width} min={1} max={5} onChange={setWidth}>
+                  <NumberInput defaultValue={width} min={1} max={3} onChange={setWidth}>
                     <NumberInputField />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
@@ -55,7 +55,7 @@ export default function CanvasDimensions({reset}) {
                 </FormControl>
                 <FormControl isRequired>
                   <FormLabel>Plates Height: </FormLabel>
-                  <NumberInput defaultValue={height} min={1} max={5} onChange={setHeight}>
+                  <NumberInput defaultValue={height} min={1} max={3} onChange={setHeight}>
                     <NumberInputField />
                     <NumberInputStepper>
                       <NumberIncrementStepper />
