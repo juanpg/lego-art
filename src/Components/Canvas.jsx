@@ -52,7 +52,6 @@ export default function Canvas({currentPixels, onNewPixels }) {
 
   useEffect(() => {
     if(canvasRef.current) {
-      console.log(`pixelsPerSquare`, pixelsPerSquare, 'canvasSize', canvasSize);
       const ctx = canvasRef.current.getContext('2d');
       ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   
@@ -60,9 +59,12 @@ export default function Canvas({currentPixels, onNewPixels }) {
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   
-      currentPixels.forEach((color, index) => {
-        const {x, y} = getCoordsByIndex(index, squaresPerPlate, width);
-        drawPixel(ctx, {x, y, color}, pixelsPerSquare)
+      currentPixels.forEach((row, y) => {
+        row.forEach((color, x) => {
+          drawPixel(ctx, {x, y, color}, pixelsPerSquare)
+        })
+        // const {x, y} = getCoordsByIndex(index, squaresPerPlate, width);
+        // drawPixel(ctx, {x, y, color}, pixelsPerSquare)
       });
     }
   }, [canvasRef, currentPixels, pixelsPerSquare]);  
@@ -71,8 +73,9 @@ export default function Canvas({currentPixels, onNewPixels }) {
     if(canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
 
-      for(const [index, color] of newPixels.entries()) {
-        const {x, y} = getCoordsByIndex(index, squaresPerPlate, width);
+      for(const [coords, color] of newPixels.entries()) {
+        // const {x, y} = getCoordsByIndex(index, squaresPerPlate, width);
+        const [x, y] = coords.split('-');
         drawPixel(ctx, {x, y, color}, pixelsPerSquare)
       }
     }
@@ -84,7 +87,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
     }
 
     const {x, y} = getPixelCoords(event, pixelsPerSquare);
-    if(x === null || y === null) {
+    if(x === null || y === null || x < 0 || x >= width * squaresPerPlate || y < 0 || y >= height * squaresPerPlate) {
       return;
     }
 
@@ -96,7 +99,8 @@ export default function Canvas({currentPixels, onNewPixels }) {
 
     setNewPixels(m => {
       const n = new Map(m);
-      n.set(getIndexByCoords(pixel.x, pixel.y, squaresPerPlate, width), pixel.color)
+      // n.set(getIndexByCoords(pixel.x, pixel.y, squaresPerPlate, width), pixel.color)
+      n.set(`${x}-${y}`, pixel.color);
       return n;
     })
   }
@@ -108,7 +112,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
 
     const {x, y} = getPixelCoords(event, pixelsPerSquare);
 
-    if(x === null || y === null) {
+    if(x === null || y === null || x < 0 || x >= width * squaresPerPlate || y < 0 || y >= height * squaresPerPlate) {
       return;
     }
 
@@ -117,6 +121,10 @@ export default function Canvas({currentPixels, onNewPixels }) {
       return;
     } else if(currentTool === 'picker') {
       // Set the currentColor to the color of the selected square
+
+      return;
+    } else if(currentTool === 'move') {
+      // Change mouse, probably need to save where we started 
 
       return;
     }
@@ -131,7 +139,8 @@ export default function Canvas({currentPixels, onNewPixels }) {
 
     setNewPixels(m => {
       const n = new Map();
-      n.set(getIndexByCoords(pixel.x, pixel.y, squaresPerPlate, width), pixel.color)
+      // n.set(getIndexByCoords(pixel.x, pixel.y, squaresPerPlate, width), pixel.color)
+      n.set(`${x}-${y}`, pixel.color);
       return n;
     })
   }
@@ -144,10 +153,14 @@ export default function Canvas({currentPixels, onNewPixels }) {
     }
 
     // Notify the parent that we're done painting
-    const updatedPixels = [...currentPixels];
-    for(const [index, color] of newPixels.entries()) {
-      updatedPixels[index] = color;
-    }
+    // const updatedPixels = [...currentPixels];
+    // for(const [index, color] of newPixels.entries()) {
+    //   updatedPixels[index] = color;
+    // }
+
+    const updatedPixels = currentPixels.map((row, y) => {
+      return row.map((color, x) => newPixels.has(`${x}-${y}`) ? newPixels.get(`${x}-${y}`) : color )
+    })
     
     onNewPixels(updatedPixels);
   }

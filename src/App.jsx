@@ -1,5 +1,5 @@
 import { Box, ButtonGroup, Container, Flex, HStack, Heading, IconButton, Spacer, Stack, VStack, useColorMode, useColorModeValue } from '@chakra-ui/react';
-import { useState, useContext, Fragment } from 'react';
+import { useState, useContext } from 'react';
 import { LuUndo2, LuRedo2, LuTrash2, LuMoon, LuSun } from 'react-icons/lu';
 import './App.css';
 
@@ -13,7 +13,7 @@ function App() {
   const { colorMode, toggleColorMode } = useColorMode();
   const { dimensions, squaresPerPlate } = useContext(LegoArtContext);
   const [history, setHistory] = useState([
-    Array(dimensions.width * squaresPerPlate * dimensions.height * squaresPerPlate).fill(null)
+    Array(dimensions.height * squaresPerPlate).fill(Array(dimensions.width * squaresPerPlate).fill(null))
   ]);
   const [stepHistory, setStepHistory] = useState(0);
 
@@ -32,7 +32,7 @@ function App() {
 
   const handleReset = () => {
     setHistory([
-      Array(dimensions.width * squaresPerPlate * dimensions.height * squaresPerPlate).fill(null)
+      Array(dimensions.height * squaresPerPlate).fill(Array(dimensions.width * squaresPerPlate).fill(null))
     ])
     setStepHistory(0)
   }
