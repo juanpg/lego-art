@@ -37,7 +37,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
   const canvasRef = useRef(null);
   const active = useRef(false);
   const [newPixels, setNewPixels] = useState(new Map)
-  const { dimensions, currentTool, currentColor, squaresPerPlate, pixelsPerSquare } = useContext(LegoArtContext);
+  const { dimensions, currentTool, currentColor, onColorChange, squaresPerPlate, pixelsPerSquare } = useContext(LegoArtContext);
   const { width, height } = dimensions;
 
   const canvasSize = useBreakpointValue({
@@ -117,11 +117,11 @@ export default function Canvas({currentPixels, onNewPixels }) {
     }
 
     if(currentTool === 'fill') {
-
+      fill(x, y);
       return;
     } else if(currentTool === 'picker') {
       // Set the currentColor to the color of the selected square
-
+      pick(x, y);
       return;
     } else if(currentTool === 'move') {
       // Change mouse, probably need to save where we started 
@@ -163,6 +163,35 @@ export default function Canvas({currentPixels, onNewPixels }) {
     })
     
     onNewPixels(updatedPixels);
+  }
+
+  const fill = (x, y) => {
+    const targetColor = currentPixels[y][x];
+    const around = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    const drawn = [{x, y, color: currentColor}];
+
+    for(let done=0; done < drawn.length; done++) {
+      for(const [dx, dy] of around) {
+        const x = drawn[done].x + dx;
+        const y = drawn[done].y + dy;
+        if(x >= 0 && x < width * squaresPerPlate && 
+           y >= 0 && y < height * squaresPerPlate &&
+           currentPixels[y][x] === targetColor && 
+           !drawn.some(p => p.x === x && p.y === y )) {
+          drawn.push({x, y, color: currentColor})
+        }
+      }
+    }
+
+    setNewPixels(drawn.reduce((m, {x, y, color}) => {
+        m.set(`${x}-${y}`, color);
+        return m;
+    }, new Map));
+  }
+
+  const pick = (x, y) => {
+    const targetColor = newPixels.has(`${x}-${y}`) ? newPixels.get(`${x}-${y}`) : currentPixels[y][x];
+    onColorChange(targetColor ?? '');
   }
 
   return (
