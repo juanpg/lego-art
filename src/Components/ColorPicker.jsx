@@ -26,15 +26,6 @@ export default function ColorPicker() {
           title="Change current color"
           color={currentColor}
         />
-        {/* <Button 
-          bg={currentColor} 
-          borderRadius={'50%'} 
-          borderColor='black'
-          borderWidth='thin'
-          size='xs'
-          aria-label='Change current color'
-          title='Change current color'
-        /> */}
       </PopoverTrigger>
       <PopoverContent>
         <PopoverCloseButton />
@@ -53,8 +44,9 @@ export default function ColorPicker() {
         </PopoverBody>
         <PopoverFooter>
           <ButtonGroup>
-            <Button>Add Color</Button>
-            <Button>Remove Color</Button>
+            <Button size='xs' isDisabled>Add</Button>
+            <Button size='xs' isDisabled>Remove</Button>
+            <Button size='xs' isDisabled>Reset</Button>
           </ButtonGroup>
         </PopoverFooter>
       </PopoverContent>

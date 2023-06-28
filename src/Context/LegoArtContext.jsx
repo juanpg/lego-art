@@ -3,7 +3,26 @@ import { createContext, useState } from "react";
 import { BsPencil, BsPaintBucket, BsEraser, BsEyedropper } from 'react-icons/bs'
 import { FaRegHandPointer } from 'react-icons/fa'
 
-const DEFAULT_COLORS = ["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#607d8b", "#000000", "#ffffff"];
+// const DEFAULT_COLORS = ["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#607d8b", "#000000", "#ffffff"];
+const DEFAULT_COLORS = [
+  '#2f2b2c',  //1
+  '#1b4c7a', 
+  '#00aef8',  //3
+  '#cbeeef', 
+  '#e3e8e8',  //5
+  '#eeb8ed', 
+  '#d71017',  //7
+  '#f97c00', 
+  '#e7ad00',  //9
+  '#e8c600', 
+  '#e5de7a',  //11
+  '#d2c39a', 
+  '#bc804f',  //13
+  '#6d361f', 
+  '#2dbc49',  //15
+  '#a9c600', 
+];
+
 const PIXELS_PER_SQUARE = 20;
 const SQUARES_PER_PLATE = 16;
 
@@ -32,7 +51,7 @@ const tools = {
 
 export const LegoArtContext = createContext({
   squaresPerPlate: SQUARES_PER_PLATE,
-  dimensions: {width: 1, height: 1},
+  dimensions: [1, 1],
   onDimensionsChange: () => {},
   pixelsPerSquare: PIXELS_PER_SQUARE,
   tools,
@@ -42,21 +61,29 @@ export const LegoArtContext = createContext({
 });
 
 export function LegoArtProvider({ children }) {
-  const [dimensions, setDimensions] = useState({width: 1, height: 1});
+  const [dimensions, setDimensions] = useState([1, 1]);
   const [zoomLevel, setZoomLevel] = useState(1);
 
   const pixelsPerSquare = useBreakpointValue({
-    base: [18, 30, 42, 48][zoomLevel-1] / dimensions.width ,
-    md: [30, 42, 48, 54][zoomLevel-1] / dimensions.width,
-    lg: [42, 48, 54, 60][zoomLevel-1] / dimensions.width,
-    xl: [48, 54, 60, 66][zoomLevel-1] / dimensions.width
+    base: [18, 30, 42, 48][zoomLevel-1] / dimensions[0] ,
+    md: [30, 42, 48, 54][zoomLevel-1] / dimensions[0],
+    lg: [42, 48, 54, 60][zoomLevel-1] / dimensions[0],
+    xl: [48, 54, 60, 66][zoomLevel-1] / dimensions[0]
   });
   const [colors, setColors] = useState(DEFAULT_COLORS);
-  const [currentColor, setCurrentColor] = useState("#FFFFFF");
+  const [currentColor, setCurrentColor] = useState(DEFAULT_COLORS[1]);
   const [currentTool, setCurrentTool] = useState('pencil');
 
+  const drawPixel = (ctx, {x, y, color}, pps = pixelsPerSquare) => {
+    ctx.fillStyle = color ?? '#111111';
+  
+    ctx.beginPath();
+    ctx.arc(x * pps + pps / 2, y * pps + pps / 2, pps / 2, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+
   const onDimensionsChange = (width, height) => {
-    setDimensions({width, height});
+    setDimensions(d => [width, height]);
   }
 
   const onZoomLevelChange = (zoomLevel) => {
@@ -103,7 +130,8 @@ export function LegoArtProvider({ children }) {
         onColorAdd,
         onColorRemove,
         currentColor,
-        onColorChange
+        onColorChange,
+        drawPixel
       }}
     >
       {children}

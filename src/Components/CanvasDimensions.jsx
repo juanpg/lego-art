@@ -1,17 +1,18 @@
 import { Stack, FormControl, FormLabel, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Button, useDisclosure, AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Alert, AlertIcon, AlertDescription, AlertTitle, AlertDialogCloseButton, IconButton } from "@chakra-ui/react"
-import { useContext, useState } from "react"
-import { TbResize } from 'react-icons/tb'
+import { useContext, useRef, useState } from "react"
+import { TbNewSection } from 'react-icons/tb'
 import { LegoArtContext } from "../Context/LegoArtContext"
 
-export default function CanvasDimensions({reset}) {
+export default function CanvasDimensions() {
   const { dimensions, onDimensionsChange } = useContext(LegoArtContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [width, setWidth] = useState(dimensions.width);
-  const [height, setHeight] = useState(dimensions.height);
+  const [width, setWidth] = useState(dimensions[0]);
+  const [height, setHeight] = useState(dimensions[1]);
+
+  const cancelRef = useRef(null);
 
   const onSave = () => {
-    onDimensionsChange(width, height);
-    reset();
+    onDimensionsChange(parseInt(width), parseInt(height));
     onClose();
   }
 
@@ -19,21 +20,23 @@ export default function CanvasDimensions({reset}) {
     <>
       <IconButton 
         onClick={onOpen} 
-        icon={<TbResize />}
-        aria-label="Change dimensions"
+        icon={<TbNewSection />}
+        aria-label="New"
+        title='New'
       />
       <AlertDialog
         isOpen={isOpen}
         onClose={onClose}
+        leastDestructiveRef={cancelRef}
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader>
-              Change dimensions
+              New image
             </AlertDialogHeader>
             <AlertDialogCloseButton />
             <AlertDialogBody>
-              <Alert status='warning'>
+              {/* <Alert status='warning'>
                 <AlertIcon />
                 <AlertTitle>
                   Warning:
@@ -41,7 +44,7 @@ export default function CanvasDimensions({reset}) {
                 <AlertDescription>
                   Changing the dimensions will reset your current drawing.
                 </AlertDescription>
-              </Alert>
+              </Alert> */}
               <Stack>
                 <FormControl isRequired>
                   <FormLabel>Plates Width: </FormLabel>
@@ -69,7 +72,7 @@ export default function CanvasDimensions({reset}) {
               <Button colorScheme='blue' onClick={onSave}>
                 Save
               </Button>
-              <Button onClick={onClose} ml={3}>
+              <Button onClick={onClose} ml={3} ref={cancelRef}>
                 Cancel
               </Button>
             </AlertDialogFooter>

@@ -3,15 +3,6 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { LegoArtContext } from "../Context/LegoArtContext";
 import { FaRegHandPointer, FaRegHandRock } from 'react-icons/fa';
 
-const drawPixel = (ctx, {x, y, color}, pixelsPerSquare) => {
-  ctx.fillStyle = color ?? '#111111';
-  // ctx.fillRect(x * pixelsPerSquare, y * pixelsPerSquare, pixelsPerSquare, pixelsPerSquare);
-
-  ctx.beginPath();
-  ctx.arc(x * pixelsPerSquare + pixelsPerSquare / 2, y * pixelsPerSquare + pixelsPerSquare / 2, pixelsPerSquare / 2, 0, 2 * Math.PI , )
-  ctx.fill();
-}
-
 const getPixelCoords = (event, pixelsPerSquare) => {
   const rect = event.target.getBoundingClientRect();
   if(event.clientX < rect.left || event.clientX > rect.left + rect.width || event.clientY < rect.top || event.clientY > rect.top + rect.height ) {
@@ -23,22 +14,12 @@ const getPixelCoords = (event, pixelsPerSquare) => {
   return {x, y};
 }
 
-const getCoordsByIndex = (index, squaresPerPlate, width) => {
-  const y = Math.floor(index / (squaresPerPlate * width));
-  const x = index - y * squaresPerPlate * width;
-  return {x, y}
-}
-
-const getIndexByCoords = (x, y, squaresPerPlate, width) => {
-  return y * squaresPerPlate * width + x;
-}
-
 export default function Canvas({currentPixels, onNewPixels }) {
   const canvasRef = useRef(null);
   const active = useRef(false);
   const [newPixels, setNewPixels] = useState(new Map)
-  const { dimensions, currentTool, currentColor, onColorChange, squaresPerPlate, pixelsPerSquare } = useContext(LegoArtContext);
-  const { width, height } = dimensions;
+  const { dimensions, currentTool, currentColor, onColorChange, squaresPerPlate, pixelsPerSquare, drawPixel } = useContext(LegoArtContext);
+  const [ width, height ] = dimensions;
 
   const canvasSize = useBreakpointValue({
     base: 288,
@@ -51,7 +32,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
   const canvasHeight = `${canvasSize}px`;
 
   useEffect(() => {
-    if(canvasRef.current) {
+    if(canvasRef.current && currentPixels) {
       const ctx = canvasRef.current.getContext('2d');
       ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   
@@ -61,7 +42,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
   
       currentPixels.forEach((row, y) => {
         row.forEach((color, x) => {
-          drawPixel(ctx, {x, y, color}, pixelsPerSquare)
+          drawPixel(ctx, {x, y, color})
         })
         // const {x, y} = getCoordsByIndex(index, squaresPerPlate, width);
         // drawPixel(ctx, {x, y, color}, pixelsPerSquare)
@@ -76,7 +57,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
       for(const [coords, color] of newPixels.entries()) {
         // const {x, y} = getCoordsByIndex(index, squaresPerPlate, width);
         const [x, y] = coords.split('-');
-        drawPixel(ctx, {x, y, color}, pixelsPerSquare)
+        drawPixel(ctx, {x, y, color})
       }
     }
   }, [newPixels, pixelsPerSquare])
@@ -94,7 +75,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
     const pixel = {
       x, 
       y,  
-      color: currentTool === 'pencil' ? currentColor : '#111111'
+      color: currentTool === 'pencil' ? currentColor : null
     }
 
     setNewPixels(m => {
@@ -134,7 +115,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
     const pixel = {
       x, 
       y,  
-      color: currentTool === 'pencil' ? currentColor : '#111111'
+      color: currentTool === 'pencil' ? currentColor : null
     }
 
     setNewPixels(m => {
