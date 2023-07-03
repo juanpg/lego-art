@@ -1,4 +1,4 @@
-import { Box, ButtonGroup, Container, Divider, Flex, HStack, Heading, IconButton, Spacer, Stack, VStack, useColorMode, useColorModeValue } from '@chakra-ui/react';
+import { Box, ButtonGroup, Container, Divider, Flex, HStack, Heading, IconButton, Spacer, Stack, VStack, useColorMode, useColorModeValue, useBreakpointValue } from '@chakra-ui/react';
 import { useState, useContext, useEffect } from 'react';
 import { LuUndo2, LuRedo2, LuTrash2, LuMoon, LuSun } from 'react-icons/lu';
 import './App.css';
@@ -12,6 +12,7 @@ import FileNew from './Components/FileNew';
 import FileLoad from './Components/FileLoad';
 import FileSave from './Components/FileSave';
 import Stats from './Components/Stats';
+import { useWindowWidth } from './Hooks/useWindowWidth';
 
 function App() {
   const emptyHistory = () => {
@@ -23,6 +24,7 @@ function App() {
   const [width, height] = dimensions;
   const [history, setHistory] = useState(() => emptyHistory());
   const [stepHistory, setStepHistory] = useState(0);
+  const windowWidth = useWindowWidth();
 
   useEffect(() => {
     setHistory(emptyHistory())
@@ -47,8 +49,13 @@ function App() {
     setStepHistory(0)
   }
 
+  const buttonProps = {
+    fontSize: useBreakpointValue({ base: 'unset', md: '24px' }),
+    size: useBreakpointValue({ base: 'sm', md: 'md' })
+  }
+
   return (
-    <Container maxW='container.lg' p={0}>
+    <Container minW='320px' maxW='container.lg' p={0}>
       <Flex h='100vh' py={5} mb={0}>
         <VStack w='full' h='full' px={5} py={5} spacing={10} alignItems='center'>
           <Box w='full'>
@@ -58,15 +65,15 @@ function App() {
                 bg={useColorModeValue('gray.50', 'gray.900')}
                 py={2} px={4}
               >
-                <Heading fontSize='2xl'>Lego Art Maker</Heading>
+                <Heading fontSize={useBreakpointValue({base: 'lg', md: '2xl'})}>Lego Art Maker</Heading>
                 <ButtonGroup>
                   <IconButton
                     onClick={toggleColorMode}
                     title='Switch theme'
                     aria-label='Switch theme'
                     icon={ colorMode === 'light' ? <LuMoon /> : <LuSun /> }
-                    fontSize='24px'
                     color={ useColorModeValue('darkblue', 'yellow') }
+                    {...buttonProps}
                   />
                 </ButtonGroup>
               </HStack>
@@ -74,23 +81,25 @@ function App() {
           </Box>
           <Box w='full'>
             <Box margin='0 auto' as='nav'>
-              <HStack
-                justifyContent='space-between'
+              <Stack
+                // justifyContent='space-between'
                 bg={useColorModeValue('gray.50', 'gray.900')}
-                py={2} px={4}
+                p={3}
+                direction={windowWidth < 320 ? 'column' : 'row'}
               >
                 <ButtonGroup>
-                  <FileNew />
-                  <FileLoad />
-                  <FileSave />
-                  <Spacer />
+                  <FileNew {...buttonProps} />
+                  <FileLoad {...buttonProps} />
+                  <FileSave {...buttonProps} />
+                </ButtonGroup>
+                <ButtonGroup>
                   <IconButton 
                     onClick={handleUndo} 
                     isDisabled={history.length === 1 || stepHistory <= 0}
                     aria-label='Undo'
                     title='Undo'
                     icon={<LuUndo2 />}
-                    fontSize='24px'
+                    {...buttonProps}
                   />
                   <IconButton 
                     onClick={handleRedo} 
@@ -98,32 +107,32 @@ function App() {
                     aria-label='Redo'
                     title='Redo'
                     icon={<LuRedo2 />}
-                    fontSize='24px'
+                    {...buttonProps}
                   />
                   <IconButton 
                     onClick={handleReset} 
                     isDisabled={history.length === 1}
                     aria-label='Clear history'
                     title='Clear history'
-                    fontSize='24px'
                     icon={<LuTrash2 />}
+                    {...buttonProps}
                   />
                 </ButtonGroup>
-              </HStack>
+              </Stack>
             </Box>
           </Box>
           <Box w='full'>
             <Box>
               <main>
-                <Flex justify='space-evenly'>
+                <Flex justify='space-evenly' direction={((windowWidth < 400) || (dimensions[0] > dimensions[1])) ? 'column' : 'row'} gap={3} mb={3}>
                   <Canvas 
                     currentPixels={history[stepHistory]}
                     onNewPixels={handleNewPixels}
                   />
-                  <Stack>
-                      <ColorPicker />
-                      <ToolPicker />
-                      <Stats pixels={history[stepHistory]} />
+                  <Stack direction={((windowWidth < 320) || (dimensions[0] > dimensions[1])) ? 'row' : 'column'}>
+                      <ColorPicker width='3rem' {...buttonProps} />
+                      <ToolPicker width='3rem' {...buttonProps} />
+                      <Stats pixels={history[stepHistory]} width='3rem' {...buttonProps} />
                   </Stack>
                 </Flex>
               </main>

@@ -53,7 +53,7 @@ export const LegoArtContext = createContext({
   squaresPerPlate: SQUARES_PER_PLATE,
   dimensions: [1, 1],
   onDimensionsChange: () => {},
-  pixelsPerSquare: PIXELS_PER_SQUARE,
+  getPixelsPerSquare: (width, height, zoomLevel) => PIXELS_PER_SQUARE,
   tools,
   colors: DEFAULT_COLORS,
   currentColor: '#FFFFFF',
@@ -64,17 +64,31 @@ export function LegoArtProvider({ children }) {
   const [dimensions, setDimensions] = useState([1, 1]);
   const [zoomLevel, setZoomLevel] = useState(1);
 
-  const pixelsPerSquare = useBreakpointValue({
-    base: [18, 30, 42, 48][zoomLevel-1] / dimensions[0] ,
-    md: [30, 42, 48, 54][zoomLevel-1] / dimensions[0],
-    lg: [42, 48, 54, 60][zoomLevel-1] / dimensions[0],
-    xl: [48, 54, 60, 66][zoomLevel-1] / dimensions[0]
-  });
+  // const pixelsPerSquare = useBreakpointValue({
+  //   base: [18, 30, 42, 48][zoomLevel-1], // / dimensions[0] ,
+  //   md: [30, 42, 48, 54][zoomLevel-1], // / dimensions[0],
+  //   lg: [42, 48, 54, 60][zoomLevel-1], // / dimensions[0],
+  //   xl: [48, 54, 60, 66][zoomLevel-1], // / dimensions[0]
+  // }) / (dimensions[0] !== dimensions[1] ? Math.min(...dimensions) : dimensions[0]) ;
   const [colors, setColors] = useState(DEFAULT_COLORS);
   const [currentColor, setCurrentColor] = useState(DEFAULT_COLORS[1]);
   const [currentTool, setCurrentTool] = useState('pencil');
 
-  const drawPixel = (ctx, {x, y, color}, pps = pixelsPerSquare) => {
+  const pixelSizes = useBreakpointValue({
+    base: [18, 30, 42, 48], // / dimensions[0] ,
+    md: [30, 42, 48, 54], // / dimensions[0],
+    lg: [42, 48, 54, 60], // / dimensions[0],
+    xl: [48, 54, 60, 66], // / dimensions[0]
+  });
+
+  const getPixelsPerSquare = (width, height, zoomLevel) => {
+    return pixelSizes[zoomLevel - 1] / (width !== height ? Math.min(width, height) : width) ;
+  }
+
+  const drawPixel = (ctx, {x, y, color}, pps) => {
+    if(pps === null || pps === undefined) {
+      pps = getPixelsPerSquare(dimensions[0], dimensions[1], zoomLevel);
+    }
     ctx.fillStyle = color ?? '#111111';
   
     ctx.beginPath();
@@ -122,7 +136,7 @@ export function LegoArtProvider({ children }) {
         onDimensionsChange,
         zoomLevel,
         onZoomLevelChange,
-        pixelsPerSquare,
+        getPixelsPerSquare,
         tools,
         currentTool,
         onToolChange,

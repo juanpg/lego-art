@@ -2,7 +2,7 @@ import { Button, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, 
 import { useContext } from "react";
 import { LegoArtContext } from "../Context/LegoArtContext";
 
-export default function Stats({pixels}) {
+export default function Stats({pixels, ...props}) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { colors } = useContext(LegoArtContext);
 
@@ -29,6 +29,7 @@ export default function Stats({pixels}) {
         onClick={onOpen}
         aria-label="Stud count"
         title="Stud count"
+        {...props}
       >
         {totalStuds}
       </Button>

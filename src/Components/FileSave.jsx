@@ -5,7 +5,7 @@ import { useContext, useState } from 'react';
 import { AiOutlineFileImage as IconImage } from 'react-icons/ai';
 import { LegoArtContext } from "../Context/LegoArtContext";
 
-export default function FileSave({ pixels }) {
+export default function FileSave({ pixels, ...props }) {
   const handleSave = () => {
     
   }
@@ -16,7 +16,7 @@ export default function FileSave({ pixels }) {
       title="Save image"
       onClick={handleSave}
       icon={<IconImage />}
-      fontSize='24px'
+      {...props}
     />
   );
 }

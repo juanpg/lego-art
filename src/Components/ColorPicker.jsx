@@ -4,7 +4,7 @@ import { CirclePicker } from 'react-color';
 import { LegoArtContext } from "../Context/LegoArtContext";
 import { BsFillCircleFill } from 'react-icons/bs'
 
-export default function ColorPicker() {
+export default function ColorPicker({...props}) {
   const { colors, currentColor, onColorChange } = useContext(LegoArtContext);
   const { isOpen, onOpen, onClose: onChangeColorClose } = useDisclosure();
 
@@ -25,6 +25,7 @@ export default function ColorPicker() {
           aria-label="Change current color"
           title="Change current color"
           color={currentColor}
+          {...props}
         />
       </PopoverTrigger>
       <PopoverContent>

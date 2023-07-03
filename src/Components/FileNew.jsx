@@ -7,7 +7,7 @@ import { useRef, useContext, useState } from 'react';
 import { AiOutlineFileAdd as IconImage } from 'react-icons/ai'
 import { LegoArtContext } from "../Context/LegoArtContext";
 
-export default function FileNew() {
+export default function FileNew({...props}) {
   const { dimensions, onDimensionsChange } = useContext(LegoArtContext);
   const [ width, setWidth ] = useState(dimensions[0]);
   const [ height, setHeight ] = useState(dimensions[1]);
@@ -27,7 +27,7 @@ export default function FileNew() {
         title="New file"
         onClick={onOpen}
         icon={<IconImage />}
-        fontSize='24px'
+        {...props}
       />
 
       <Modal
@@ -70,7 +70,7 @@ export default function FileNew() {
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme='blue' onClick={onSave} isDisabled={width.length === 0 || height.length === 0} >
+            <Button type="submit" colorScheme='blue' onClick={onSave} isDisabled={width.length === 0 || height.length === 0} >
               Save
             </Button>
             <Button onClick={onClose} ml={3}>

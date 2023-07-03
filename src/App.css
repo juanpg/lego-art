@@ -1,3 +1,7 @@
 .circle-picker > span > div > span > div {
   outline: 1px solid black !important;
 }
+
+.react-draggable {
+  cursor: move;
+}

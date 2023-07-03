@@ -18,18 +18,21 @@ export default function Canvas({currentPixels, onNewPixels }) {
   const canvasRef = useRef(null);
   const active = useRef(false);
   const [newPixels, setNewPixels] = useState(new Map)
-  const { dimensions, currentTool, currentColor, onColorChange, squaresPerPlate, pixelsPerSquare, drawPixel } = useContext(LegoArtContext);
+  const { dimensions, currentTool, currentColor, onColorChange, squaresPerPlate, getPixelsPerSquare, drawPixel, zoomLevel } = useContext(LegoArtContext);
   const [ width, height ] = dimensions;
 
-  const canvasSize = useBreakpointValue({
+  const plateSize = useBreakpointValue({
     base: 288,
     md: 480,
     lg: 672,
     xl: 768
   });
 
-  const canvasWidth = `${canvasSize}px`;
-  const canvasHeight = `${canvasSize}px`;
+  const pixelsPerSquare = getPixelsPerSquare(dimensions[0], dimensions[1], zoomLevel);
+
+  // const canvasWidth = width > height ? `${plateSize * width}px` : `${plateSize}px`;
+  const canvasWidth = `${width * squaresPerPlate *pixelsPerSquare}px`;
+  const canvasHeight = `${height * squaresPerPlate * pixelsPerSquare}px`;
 
   useEffect(() => {
     if(canvasRef.current && currentPixels) {
@@ -98,11 +101,11 @@ export default function Canvas({currentPixels, onNewPixels }) {
     }
 
     if(currentTool === 'fill') {
-      fill(x, y);
+      executeFillColor(x, y);
       return;
     } else if(currentTool === 'picker') {
       // Set the currentColor to the color of the selected square
-      pick(x, y);
+      executePickColor(x, y);
       return;
     } else if(currentTool === 'move') {
       // Change mouse, probably need to save where we started 
@@ -146,7 +149,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
     onNewPixels(updatedPixels);
   }
 
-  const fill = (x, y) => {
+  const executeFillColor = (x, y) => {
     const targetColor = currentPixels[y][x];
     const around = [[-1, 0], [1, 0], [0, -1], [0, 1]];
     const drawn = [{x, y, color: currentColor}];
@@ -170,7 +173,7 @@ export default function Canvas({currentPixels, onNewPixels }) {
     }, new Map));
   }
 
-  const pick = (x, y) => {
+  const executePickColor = (x, y) => {
     const targetColor = newPixels.has(`${x}-${y}`) ? newPixels.get(`${x}-${y}`) : currentPixels[y][x];
     onColorChange(targetColor ?? '');
   }
