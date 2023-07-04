@@ -117,11 +117,11 @@ export default function FileLoad({ onLoadImage, ...props }) {
   }, [platesWidth, platesHeight]);
 
   // Redraw the canvas after the user has dragged the image
-  useEffect(() => {
-    if(imageRef.current && imageRef.current.src) {
-      convertImageToStuds();
-    }
-  }, [deltaDragPosition])
+  // useEffect(() => {
+  //   if(imageRef.current && imageRef.current.src) {
+  //     convertImageToStuds();
+  //   }
+  // }, [deltaDragPosition])
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -227,6 +227,19 @@ export default function FileLoad({ onLoadImage, ...props }) {
     // onLoadImage(width, height, pixels)
   }
 
+  const handleLoadCancel = () => {
+    onClose();
+    setFile(null);
+    setFileDataURL(null);
+    setZoom(1);
+    setPlatesWidth(dimensions[0]);
+    setPlatesHeight(dimensions[1]);
+
+    setFileImageBounds({ top: 0, left: 0, right: 0, bottom: 0 });
+    setFileImagePosition({ x: 0, y: 0 });
+    setDeltaDragPosition({ x: 0, y: 0 });
+  }
+
   return (
     <>
       <IconButton
@@ -239,7 +252,7 @@ export default function FileLoad({ onLoadImage, ...props }) {
       <Modal
         isOpen={isOpen}
         initialFocusRef={initialRef}
-        onClose={onClose}
+        onClose={handleLoadCancel}
         size='4xl'
       >
         <ModalOverlay />
@@ -359,7 +372,7 @@ export default function FileLoad({ onLoadImage, ...props }) {
             <Button colorScheme='blue' onClick={handleLoadClick} isDisabled={true} >
               Load
             </Button>
-            <Button onClick={onClose} ml={3}>
+            <Button onClick={handleLoadCancel} ml={3}>
               Cancel
             </Button>
           </ModalFooter>
