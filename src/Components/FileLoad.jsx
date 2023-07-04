@@ -40,42 +40,47 @@ const distanceBetweenColors = ({r: red1, g: green1, b: blue1}, {r: red2, g: gree
   );
 }
 
+const calculateMaxWidth = (windowWith, platesWidth, squaresPerPlate) => {
+  const MIN_WIDTH = 320;
+  const MAX_WIDTH = 848;
+
+  if(windowWith < MIN_WIDTH) {
+    return MIN_WIDTH;
+  }
+  
+  if(windowWith > MAX_WIDTH) {
+    return MAX_WIDTH;
+  }
+
+  return Math.floor(windowWith / (platesWidth * squaresPerPlate)) * platesWidth * squaresPerPlate;
+}
+
 export default function FileLoad({ onLoadImage, ...props }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { dimensions, squaresPerPlate, colors } = useContext(LegoArtContext);
+  const { dimensions, squaresPerPlate, colors, getPixelsPerSquare } = useContext(LegoArtContext);
   const [ platesWidth, setPlatesWidth ] = useState(dimensions[0]);
   const [ platesHeight, setPlatesHeight ] = useState(dimensions[1]);
   const [ file, setFile ] = useState(null);
   const [ fileDataURL, setFileDataURL ] = useState(null);
   const [ zoom, setZoom ] = useState(1);
-  const windowWidth = useWindowWidth();
+  
+  const maxWidth = useBreakpointValue({
+    base: 400,
+    sm: 400,
+    md: 352,
+    lg: 416,
+  })
 
-  const canvasSize = useBreakpointValue({
-    base: 420, // Math.max(420, windowWidth),
-    // sm: 420, // Math.max(420, windowWidth),
-    md: 340,
-    lg: 420,
-    xl: 590
-  });
-
-  let canvasWidth = canvasSize;
-  let canvasHeight = canvasSize;
-
-  // if(windowWidth < 768) {
-  //   canvasWidth = windowWidth;
-  //   canvasHeight = windowWidth;
-  // }
-
-  if(platesWidth > platesHeight) {
-
-  }
+  const canvasWidth = calculateMaxWidth(maxWidth, platesWidth, squaresPerPlate);
+  const pixelsPerSquare = canvasWidth / (platesWidth * squaresPerPlate);
+  const canvasHeight = parseInt(platesHeight) * squaresPerPlate * pixelsPerSquare;
 
   const [ fileImageBounds, setFileImageBounds ] = useState({
     top: 0, left: 0, right: 0, bottom: 0
   });
-  const [ fileImageDimensions, setFileImageDimensions ] = useState([canvasSize, canvasSize]);
-
-  const [ deltaDragPosition, setDeltaDragPosition ] = useState({x: 0, y: 0})
+  const [ fileImageDimensions, setFileImageDimensions ] = useState([canvasWidth, canvasHeight]);
+  const [ fileImagePosition, setFileImagePosition ] = useState({x: 0, y: 0});
+  const [ deltaDragPosition, setDeltaDragPosition ] = useState({x: 0, y: 0});
 
   const initialRef = useRef(null);
   const dragRef = useRef(null);
@@ -109,9 +114,9 @@ export default function FileLoad({ onLoadImage, ...props }) {
     if(file) {
       handleImageLoad()
     }
-  }, [canvasSize]);
+  }, [platesWidth, platesHeight]);
 
-  // When
+  // Redraw the canvas after the user has dragged the image
   useEffect(() => {
     if(imageRef.current && imageRef.current.src) {
       convertImageToStuds();
@@ -148,8 +153,25 @@ export default function FileLoad({ onLoadImage, ...props }) {
 
   const handleImageLoad = () => {
     const [fullImageWidth, fullImageHeight] = [imageRef.current.naturalWidth, imageRef.current.naturalHeight];
+    let newWidth = 0, newHeight = 0;
 
+    const widthRatio = fullImageWidth / canvasWidth;
+    const heightRatio = fullImageHeight / canvasHeight;
 
+    if(widthRatio < heightRatio) {
+      newWidth = canvasWidth;
+      newHeight = fullImageHeight / fullImageWidth *  newWidth;
+    } else {
+      newHeight = canvasHeight
+      newWidth = fullImageWidth / fullImageHeight * newHeight;
+    }
+
+    setFileImagePosition({ x: 0, y: 0});
+    setFileImageDimensions([newWidth, newHeight]);
+    setFileImageBounds({
+      top: -(newHeight -canvasHeight), left: -(newWidth - canvasWidth), right: 0, bottom: 0
+    });
+    setDeltaDragPosition({ x: 0, y: 0});
 
     // if(width === height) {
     //   if(imgWidth > imgHeight) {
@@ -189,9 +211,15 @@ export default function FileLoad({ onLoadImage, ...props }) {
 
   const handleDragOnStop = (e, ui) => {
     const newDeltaDrag = {x: ui.x, y: ui.y};
+    setFileImagePosition(newDeltaDrag);
     setDeltaDragPosition(dp => newDeltaDrag);
 
     convertImageToStuds();
+  }
+
+  const handleDrag = (e, position) => {
+    const { x, y } = position;
+    setFileImagePosition({x, y});
   }
 
   const handleLoadClick = () => {
@@ -212,7 +240,7 @@ export default function FileLoad({ onLoadImage, ...props }) {
         isOpen={isOpen}
         initialFocusRef={initialRef}
         onClose={onClose}
-        size='full'
+        size='4xl'
       >
         <ModalOverlay />
         <ModalContent>
@@ -252,19 +280,24 @@ export default function FileLoad({ onLoadImage, ...props }) {
               </FormControl>
             </Flex>
             <Divider my={5} />
-            <Flex direction={{base: 'column', md: platesWidth > platesHeight ? 'column' : 'row'}} gap={5}>
+            <Flex direction={{base: 'column', md: 'row'}} gap={2}>
               <Box w='full'>
                 <Heading as='h3' fontSize='lg'>Image preview</Heading>
-                <div style={{ 
-                  height: `${canvasHeight}px`,
-                  width: `${canvasWidth}px`,
+                <div className="outerDiv" style={{ 
+                  height: canvasHeight,
+                  width: canvasWidth,
                   border: 'solid 1px black',
                   }}
                 >
                   <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
                     {file && (
-                    <Draggable nodeRef={dragRef} onStart={handleDragOnStart} onStop={handleDragOnStop} bounds={fileImageBounds}>
-                      <div ref={dragRef}  style={{ overflow: 'hidden', position: 'relative', width: fileImageDimensions[0], height: fileImageDimensions[1] }}>
+                    <Draggable nodeRef={dragRef} onStart={handleDragOnStart} onStop={handleDragOnStop} onDrag={handleDrag} bounds={fileImageBounds} position={fileImagePosition}>
+                      <div ref={dragRef}  style={{ 
+                        overflow: 'hidden', 
+                        position: 'relative', 
+                        width: fileImageDimensions[0], 
+                        height: fileImageDimensions[1] }}
+                      >
                         <img 
                           ref={imageRef} 
                           src={fileDataURL} 
@@ -297,14 +330,24 @@ export default function FileLoad({ onLoadImage, ...props }) {
               <Box w='full'>
                 <Heading as='h3' fontSize='lg'>Lego art preview</Heading>
                 <div style={{ 
-                  height: `${canvasHeight}px`,
-                  width: `${canvasWidth}px`,
+                  height: canvasHeight,
+                  width: canvasWidth,
                   border: 'solid 1px black',
                   }}
                 >
-                  <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ overflow: 'hidden', position: 'relative', width: fileImageDimensions[0], height: fileImageDimensions[1]  }}>
-                      <canvas ref={canvasRef} width={canvasSize} height={canvasSize} />
+                  <div style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    position: 'relative', 
+                    overflow: 'hidden' }}
+                  >
+                    <div style={{ 
+                      overflow: 'hidden', 
+                      position: 'relative', 
+                      width: fileImageDimensions[0], 
+                      height: fileImageDimensions[1]  }}
+                    >
+                      <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight} />
                     </div>
                   </div>
                   
