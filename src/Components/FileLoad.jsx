@@ -33,11 +33,27 @@ const hexToRgb = (hex) => {
 }
 
 const distanceBetweenColors = ({r: red1, g: green1, b: blue1}, {r: red2, g: green2, b: blue2}) => {
-  returnMath.sqrt(
+  return Math.sqrt(
     Math.pow(red1 - red2, 2) +
     Math.pow(green1 - green2, 2) +
     Math.pow(blue1 - blue2, 2)
   );
+}
+
+const closestPaletteColor = (color, palette) => {
+  let closestColor = null;
+  let closestDistance = Number.MAX_VALUE;
+
+  for(const paletteColor of palette) {
+    const distance = distanceBetweenColors(color, paletteColor);
+
+    if(distance < closestDistance) {
+      closestColor = paletteColor;
+      closestDistance = distance;
+    }
+  }
+
+  return closestColor;
 }
 
 const calculateMaxWidth = (windowWith, platesWidth, squaresPerPlate) => {
@@ -57,7 +73,7 @@ const calculateMaxWidth = (windowWith, platesWidth, squaresPerPlate) => {
 
 export default function FileLoad({ onLoadImage, ...props }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { dimensions, squaresPerPlate, colors, getPixelsPerSquare } = useContext(LegoArtContext);
+  const { dimensions, squaresPerPlate, colors, getPixelsPerSquare, drawPixel } = useContext(LegoArtContext);
   const [ platesWidth, setPlatesWidth ] = useState(dimensions[0]);
   const [ platesHeight, setPlatesHeight ] = useState(dimensions[1]);
   const [ file, setFile ] = useState(null);
@@ -71,7 +87,10 @@ export default function FileLoad({ onLoadImage, ...props }) {
     lg: 416,
   })
 
+  const rgbColors = colors.map(color => hexToRgb(color));
+
   const canvasWidth = calculateMaxWidth(maxWidth, platesWidth, squaresPerPlate);
+
   const pixelsPerSquare = canvasWidth / (platesWidth * squaresPerPlate);
   const canvasHeight = parseInt(platesHeight) * squaresPerPlate * pixelsPerSquare;
 
@@ -80,7 +99,6 @@ export default function FileLoad({ onLoadImage, ...props }) {
   });
   const [ fileImageDimensions, setFileImageDimensions ] = useState([canvasWidth, canvasHeight]);
   const [ fileImagePosition, setFileImagePosition ] = useState({x: 0, y: 0});
-  const [ deltaDragPosition, setDeltaDragPosition ] = useState({x: 0, y: 0});
 
   const initialRef = useRef(null);
   const dragRef = useRef(null);
@@ -114,112 +132,139 @@ export default function FileLoad({ onLoadImage, ...props }) {
     if(file) {
       handleImageLoad()
     }
-  }, [platesWidth, platesHeight]);
-
-  // Redraw the canvas after the user has dragged the image
-  // useEffect(() => {
-  //   if(imageRef.current && imageRef.current.src) {
-  //     convertImageToStuds();
-  //   }
-  // }, [deltaDragPosition])
+  }, [file, platesWidth, platesHeight, zoom]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setFile(file);
-  }
-
-  const convertImageToStuds = () => {
-    const [fullImageWidth, fullImageHeight] = [imageRef.current.naturalWidth, imageRef.current.naturalHeight];
-
-    // console.log(deltaDragPosition);
-
-    // let canvasWidth = platesWidth;
-    // let canvasHeight = platesWidth;
-
-    // if(width === height) {
-    //   canvasHeight = Math.min(imgWidth, imgHeight);
-    //   canvasWidth = Math.min(imgWidth, imgHeight);
-    // }
-    
-    // const offscreen = new OffscreenCanvas(canvasWidth, canvasHeight);
-    // const ctx = offscreen.getContext('2d');
-
-    // ctx.drawImage(imageRef.current, -deltaDragPosition.x, -deltaDragPosition.y, imgWidth, imgHeight, 0, 0, canvasWidth, canvasHeight);
-
-    // const imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-
-    // console.log([canvasWidth, canvasHeight], [imgWidth, imgHeight], imageData);
+    if(file) {
+      setZoom(z => 1)
+      setFile(f => file);
+    } else {
+      setFile(f => null);
+      setFileDataURL(fd => null);
+    }
   }
 
   const handleImageLoad = () => {
+    // console.log(imageRef.current.naturalWidth);
     const [fullImageWidth, fullImageHeight] = [imageRef.current.naturalWidth, imageRef.current.naturalHeight];
+
+    if(fullImageWidth === 0 || fullImageHeight === 0) {
+      return;
+    }
+
     let newWidth = 0, newHeight = 0;
 
     const widthRatio = fullImageWidth / canvasWidth;
     const heightRatio = fullImageHeight / canvasHeight;
 
     if(widthRatio < heightRatio) {
-      newWidth = canvasWidth;
+      newWidth = canvasWidth * zoom;
       newHeight = fullImageHeight / fullImageWidth *  newWidth;
     } else {
-      newHeight = canvasHeight
+      newHeight = canvasHeight * zoom
       newWidth = fullImageWidth / fullImageHeight * newHeight;
     }
 
-    setFileImagePosition({ x: 0, y: 0});
-    setFileImageDimensions([newWidth, newHeight]);
-    setFileImageBounds({
-      top: -(newHeight -canvasHeight), left: -(newWidth - canvasWidth), right: 0, bottom: 0
-    });
-    setDeltaDragPosition({ x: 0, y: 0});
-
-    // if(width === height) {
-    //   if(imgWidth > imgHeight) {
-    //     const newHeight = canvasSize;
-    //     const newWidth = Math.round(canvasSize * imgWidth / imgHeight, 0);
-
-    //     setRectHeight(newHeight);
-    //     setRectWidth(newWidth);
-    //     setRectBounds({
-    //       top: 0,
-    //       bottom: 0,
-    //       left: -(newWidth - canvasSize),
-    //       right: 0
-    //     });
-
-    //     setDeltaPosition(dp => { return {x: 0, y: 0}; });
-    //   } else {
-    //     const newHeight = Math.round(canvasSize * imgHeight / imgWidth, 0);
-    //     const newWidth = canvasSize;;
-
-    //     setRectHeight(newHeight);
-    //     setRectWidth(newWidth);
-
-    //     setRectBounds({
-    //       top: -(newHeight - canvasSize),
-    //       bottom: 0,
-    //       left: 0,
-    //       right: 0
-    //     });
-    //   }
-    // }
-  }
-
-  const handleDragOnStart = (e, ui) => {
-    e.preventDefault();
-  }
-
-  const handleDragOnStop = (e, ui) => {
-    const newDeltaDrag = {x: ui.x, y: ui.y};
-    setFileImagePosition(newDeltaDrag);
-    setDeltaDragPosition(dp => newDeltaDrag);
+    setFileImagePosition(ip => { return { x: 0, y: 0} });
+    setFileImageDimensions(id => { return [newWidth, newHeight] });
+    setFileImageBounds(ib => { return { top: -(newHeight -canvasHeight), left: -(newWidth - canvasWidth), right: 0, bottom: 0 }; });
 
     convertImageToStuds();
   }
 
-  const handleDrag = (e, position) => {
-    const { x, y } = position;
-    setFileImagePosition({x, y});
+  const convertImageToStuds = () => {
+    if(!canvasRef.current) {
+      return;
+    }
+
+    const cr = canvasRef.current;
+
+    const pixels = new Array(platesHeight * squaresPerPlate).fill(null).map(() => Array(platesWidth * squaresPerPlate).fill(null));
+
+    console.log(pixels);
+
+    const ctx = cr.getContext('2d');
+    ctx.clearRect(0, 0, cr.width, cr.height);
+  
+    ctx.globalCompositeOperation = 'destination-under';
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, cr.width, cr.height);
+
+    if(file && imageRef.current) {
+      const ir = imageRef.current;
+      const w = canvasWidth / ir.width * ir.naturalWidth;
+      const h = canvasHeight / ir.height * ir.naturalHeight;
+      const deltaX = ir.naturalWidth / ir.width * fileImagePosition.x;
+      const deltaY = ir.naturalHeight / ir.height * fileImagePosition.y;
+
+      const offCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
+      const offCtx = offCanvas.getContext('2d', {willReadFrequently: true});
+      offCtx.drawImage(ir, -deltaX, -deltaY, w, h, 0, 0, canvasWidth, canvasHeight);
+
+      const imageData = offCtx.getImageData(0, 0, canvasWidth, canvasHeight).data;
+
+      const [squaresX, squaresY] = [Math.floor(canvasWidth / pixelsPerSquare), Math.floor(canvasHeight / pixelsPerSquare)];
+
+      // console.log('before', pixels);
+      
+      for (let y = 0; y < squaresY; y++) {
+        for (let x = 0; x < squaresX; x++) {
+          let sumR = 0
+          let sumG = 0
+          let sumB = 0;
+          let count = 0;
+          for(let i = 0; i < pixelsPerSquare; i++) {
+            for (let j = 0; j < pixelsPerSquare; j++) {
+
+              const dx = (y * pixelsPerSquare + j) * canvasWidth * 4 + (x * pixelsPerSquare + i) * 4;
+
+              if(dx < imageData.length) {
+                sumR += imageData[dx];
+                sumG += imageData[dx + 1];
+                sumB += imageData[dx + 2];
+                count++;
+
+                if(x === 0 && y === 0) {
+                  // console.log(`i: ${i}, j: ${j}, colors:`, imageData[dx], imageData[dx+1], imageData[dx+2]);
+                }
+              }
+            }
+          }
+
+          const avgR = Math.round(sumR / count);
+          const avgG = Math.round(sumG / count);
+          const avgB = Math.round(sumB / count);
+
+          pixels[y][x] = rgbToHex( closestPaletteColor( {r: avgR, g: avgG, b: avgB}, rgbColors));
+
+        }
+      }
+    }
+
+    pixels.forEach((row, y) => {
+      row.forEach((color, x) => {
+        drawPixel(ctx, {x, y, color}, pixelsPerSquare);
+      })
+    });
+  }
+
+   const handleDragOnStart = (e, ui) => {
+    e.preventDefault();
+  }
+
+  const handleDragOnStop = (e, ui) => {
+    setFileImagePosition(ip => { return {x: ui.x, y: ui.y} });
+    convertImageToStuds();
+  }
+
+  const handleDrag = (e, ui) => {
+    setFileImagePosition(ip => { return {x: ui.x, y: ui.y} });
+  }
+
+  const handleZoom = (delta) => {
+    setZoom(z => z + delta);
+    convertImageToStuds();
   }
 
   const handleLoadClick = () => {
@@ -237,7 +282,6 @@ export default function FileLoad({ onLoadImage, ...props }) {
 
     setFileImageBounds({ top: 0, left: 0, right: 0, bottom: 0 });
     setFileImagePosition({ x: 0, y: 0 });
-    setDeltaDragPosition({ x: 0, y: 0 });
   }
 
   return (
@@ -267,7 +311,7 @@ export default function FileLoad({ onLoadImage, ...props }) {
               </FormControl>
               <FormControl isRequired flexGrow={1} >
                 <FormLabel>Plates Width: </FormLabel>
-                <NumberInput defaultValue={platesWidth} min={1} max={3} onChange={setPlatesWidth}>
+                <NumberInput defaultValue={platesWidth} min={1} max={3} onChange={(newWidth) => { setPlatesWidth(w => newWidth); convertImageToStuds(); }}>
                   <NumberInputField />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
@@ -280,7 +324,7 @@ export default function FileLoad({ onLoadImage, ...props }) {
               </FormControl>
               <FormControl isRequired flexGrow={1}>
                 <FormLabel>Plates Height: </FormLabel>
-                <NumberInput defaultValue={platesHeight} min={1} max={3} onChange={setPlatesHeight}>
+                <NumberInput defaultValue={platesHeight} min={1} max={3} onChange={(newHeight) => {setPlatesHeight(h => newHeight); convertImageToStuds(); }}>
                   <NumberInputField />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
@@ -296,15 +340,16 @@ export default function FileLoad({ onLoadImage, ...props }) {
             <Flex direction={{base: 'column', md: 'row'}} gap={2}>
               <Box w='full'>
                 <Heading as='h3' fontSize='lg'>Image preview</Heading>
-                <div className="outerDiv" style={{ 
+                <div style={{ 
                   height: canvasHeight,
                   width: canvasWidth,
                   border: 'solid 1px black',
+                  boxSizing: 'content-box'
                   }}
                 >
                   <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
                     {file && (
-                    <Draggable nodeRef={dragRef} onStart={handleDragOnStart} onStop={handleDragOnStop} onDrag={handleDrag} bounds={fileImageBounds} position={fileImagePosition}>
+                    <Draggable nodeRef={dragRef} onStart={handleDragOnStart} onStop={handleDragOnStop} onDrag={handleDrag} bounds={fileImageBounds} position={ fileImagePosition }>
                       <div ref={dragRef}  style={{ 
                         overflow: 'hidden', 
                         position: 'relative', 
@@ -328,14 +373,16 @@ export default function FileLoad({ onLoadImage, ...props }) {
                   <IconButton
                     icon={<AiOutlineZoomIn />}
                     aria-label="Zoom in"
-                    title="Zoom out"
-                    isDisabled
+                    title="Zoom in"
+                    isDisabled={!file || zoom >= 4}
+                    onClick={() => handleZoom(1)}
                   />
                   <IconButton
                     icon={<AiOutlineZoomOut />}
                     aria-label="Zoom out"
                     title="Zoom out"
-                    isDisabled
+                    isDisabled={!file || zoom <= 1}
+                    onClick={() => handleZoom(-1)}
                   />
                 </Box>
               </Box>
@@ -346,6 +393,7 @@ export default function FileLoad({ onLoadImage, ...props }) {
                   height: canvasHeight,
                   width: canvasWidth,
                   border: 'solid 1px black',
+                  boxSizing: 'content-box'
                   }}
                 >
                   <div style={{ 
