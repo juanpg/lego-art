@@ -7,7 +7,7 @@ import { useRef, useContext, useState } from 'react';
 import { AiOutlineFileAdd as IconImage } from 'react-icons/ai'
 import { LegoArtContext } from "../Context/LegoArtContext";
 
-export default function FileNew({...props}) {
+export default function FileNew({onLoadImage, ...props}) {
   const { dimensions, onDimensionsChange } = useContext(LegoArtContext);
   const [ width, setWidth ] = useState(dimensions[0]);
   const [ height, setHeight ] = useState(dimensions[1]);
@@ -16,7 +16,7 @@ export default function FileNew({...props}) {
   const widthRef = useRef(null);
 
   const onSave = () => {
-    onDimensionsChange(parseInt(width), parseInt(height));
+    onLoadImage(parseInt(width), parseInt(height)) ;
     onClose();
   }
 

@@ -15,25 +15,36 @@ import Stats from './Components/Stats';
 import { useWindowWidth } from './Hooks/useWindowWidth';
 
 function App() {
-  const emptyHistory = () => {
-    return [Array(height * squaresPerPlate).fill(Array(width * squaresPerPlate).fill(null))]
+  const emptyHistory = (w, h) => {
+    return [Array(h * squaresPerPlate).fill(null).map( () => Array(w * squaresPerPlate).fill(null))]
   }
 
   const { colorMode, toggleColorMode } = useColorMode();
-  const { dimensions, squaresPerPlate } = useContext(LegoArtContext);
+  const { dimensions, onDimensionsChange, squaresPerPlate } = useContext(LegoArtContext);
   const [width, height] = dimensions;
-  const [history, setHistory] = useState(() => emptyHistory());
+  const [history, setHistory] = useState(() => emptyHistory(width, height));
   const [stepHistory, setStepHistory] = useState(0);
   const windowWidth = useWindowWidth();
 
-  useEffect(() => {
-    setHistory(emptyHistory())
-    setStepHistory(0)
-  }, [dimensions])
+  // useEffect(() => {
+  //   setHistory(emptyHistory())
+  //   setStepHistory(0)
+  // }, [dimensions])
 
   const handleNewPixels = (newPixels) => {
     setHistory([...history.slice(0, stepHistory + 1), newPixels]);
     setStepHistory(stepHistory+1)
+  }
+
+  const handleLoadImage = (newWidth, newHeight, newPixels) => {
+    if(dimensions[0] !== newWidth || dimensions[1] !== newHeight) {
+      onDimensionsChange(newWidth, newHeight);
+      setHistory(h => newPixels ? [newPixels] : emptyHistory(newWidth, newHeight))
+      setStepHistory(sh => 0)
+    } else {
+      setHistory(h => [...h.slice(0, stepHistory + 1), newPixels]);
+      setStepHistory(sh => sh+1)
+    }
   }
 
   const handleUndo = () => {
@@ -45,7 +56,7 @@ function App() {
   }
 
   const handleReset = () => {
-    setHistory(emptyHistory())
+    setHistory(emptyHistory(width, height))
     setStepHistory(0)
   }
 
@@ -88,8 +99,8 @@ function App() {
                 direction={windowWidth < 320 ? 'column' : 'row'}
               >
                 <ButtonGroup>
-                  <FileNew {...buttonProps} />
-                  <FileLoad {...buttonProps} />
+                  <FileNew onLoadImage={handleLoadImage} {...buttonProps} />
+                  <FileLoad onLoadImage={handleLoadImage} {...buttonProps} />
                   <FileSave {...buttonProps} />
                 </ButtonGroup>
                 <ButtonGroup>

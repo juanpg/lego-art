@@ -9,7 +9,8 @@ import { useRef, useContext, useState, useEffect } from 'react';
 import { AiOutlineFileSearch as IconImage, AiOutlineZoomIn, AiOutlineZoomOut } from 'react-icons/ai';
 import { LegoArtContext } from "../Context/LegoArtContext";
 import Draggable from "react-draggable";
-import { useWindowWidth } from "../Hooks/useWindowWidth";
+// import { convert } from "chromatism";
+import { closest } from "color-diff";
 
 const rgbToHex = ({r, g, b}) => {
   if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
@@ -32,7 +33,36 @@ const hexToRgb = (hex) => {
   return { r, g, b };
 }
 
-const distanceBetweenColors = ({r: red1, g: green1, b: blue1}, {r: red2, g: green2, b: blue2}) => {
+const distanceBetweenColors = (color1, color2) => {
+  const {L: L1, a: a1, b: b1} = convert(color1).cielab;
+  const {L: L2, a: a2, b: b2} = convert(color2).cielab;
+
+  // 1994 formula
+  const deltaL = L1 - L2;
+  const deltaA = a1 - a2;
+  const deltaB = b1 - b2;
+  const c1 = Math.sqrt(a1 * a1 + b1 * b1);
+  const c2 = Math.sqrt(a2 * a2 + b2 * b2);
+  const deltaC = c1 - c2;
+  let deltaH = deltaA * deltaA + deltaB * deltaB - deltaC * deltaC;
+  deltaH = deltaH < 0 ? 0 : Math.sqrt(deltaH);
+  const sc = 1.0 + 0.045 * c1;
+  const sh = 1.0 + 0.015 * c1;
+  const deltaLKlsl = deltaL / (1.0);
+  const deltaCkcsc = deltaC / (sc);
+  const deltaHkhsh = deltaH / (sh);
+  const i = deltaLKlsl * deltaLKlsl + deltaCkcsc * deltaCkcsc + deltaHkhsh * deltaHkhsh;
+  return i < 0 ? 0 : Math.sqrt(i);
+
+
+  // 1976 formula
+  return Math.sqrt(
+    Math.pow(L2 - L1, 2) +
+    Math.pow(a2 - a1, 2) +
+    Math.pow(b2 - b1, 2)
+  );
+
+  // Euclidean distance with RGB colors
   return Math.sqrt(
     Math.pow(red1 - red2, 2) +
     Math.pow(green1 - green2, 2) +
@@ -43,6 +73,11 @@ const distanceBetweenColors = ({r: red1, g: green1, b: blue1}, {r: red2, g: gree
 const closestPaletteColor = (color, palette) => {
   let closestColor = null;
   let closestDistance = Number.MAX_VALUE;
+
+  const rgb1 = hexToRgb(color);
+  const rgbColors = palette.map(hexToRgb);
+
+  return rgbToHex(closest(rgb1, rgbColors));
 
   for(const paletteColor of palette) {
     const distance = distanceBetweenColors(color, paletteColor);
@@ -79,6 +114,7 @@ export default function FileLoad({ onLoadImage, ...props }) {
   const [ file, setFile ] = useState(null);
   const [ fileDataURL, setFileDataURL ] = useState(null);
   const [ zoom, setZoom ] = useState(1);
+  const [ pixels, setPixels ] = useState(null);
   
   const maxWidth = useBreakpointValue({
     base: 400,
@@ -86,8 +122,6 @@ export default function FileLoad({ onLoadImage, ...props }) {
     md: 352,
     lg: 416,
   })
-
-  const rgbColors = colors.map(color => hexToRgb(color));
 
   const canvasWidth = calculateMaxWidth(maxWidth, platesWidth, squaresPerPlate);
 
@@ -104,7 +138,7 @@ export default function FileLoad({ onLoadImage, ...props }) {
   const dragRef = useRef(null);
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
-  
+
   // When a file is selected, read its data
   useEffect(() => {
     let fileReader, isCancel = false;
@@ -180,9 +214,7 @@ export default function FileLoad({ onLoadImage, ...props }) {
 
     const cr = canvasRef.current;
 
-    const pixels = new Array(platesHeight * squaresPerPlate).fill(null).map(() => Array(platesWidth * squaresPerPlate).fill(null));
-
-    console.log(pixels);
+    const newPixels = Array(platesHeight * squaresPerPlate).fill(null).map(() => Array(platesWidth * squaresPerPlate).fill(null));
 
     const ctx = cr.getContext('2d');
     ctx.clearRect(0, 0, cr.width, cr.height);
@@ -224,10 +256,6 @@ export default function FileLoad({ onLoadImage, ...props }) {
                 sumG += imageData[dx + 1];
                 sumB += imageData[dx + 2];
                 count++;
-
-                if(x === 0 && y === 0) {
-                  // console.log(`i: ${i}, j: ${j}, colors:`, imageData[dx], imageData[dx+1], imageData[dx+2]);
-                }
               }
             }
           }
@@ -236,17 +264,20 @@ export default function FileLoad({ onLoadImage, ...props }) {
           const avgG = Math.round(sumG / count);
           const avgB = Math.round(sumB / count);
 
-          pixels[y][x] = rgbToHex( closestPaletteColor( {r: avgR, g: avgG, b: avgB}, rgbColors));
+          newPixels[y][x] = rgbToHex({ r: avgR, g: avgG, b: avgB });
+          newPixels[y][x] = closestPaletteColor( newPixels[y][x] , colors);
 
         }
       }
     }
 
-    pixels.forEach((row, y) => {
+    newPixels.forEach((row, y) => {
       row.forEach((color, x) => {
         drawPixel(ctx, {x, y, color}, pixelsPerSquare);
       })
     });
+
+    setPixels(newPixels);
   }
 
    const handleDragOnStart = (e, ui) => {
@@ -268,8 +299,10 @@ export default function FileLoad({ onLoadImage, ...props }) {
   }
 
   const handleLoadClick = () => {
-    // TODO
-    // onLoadImage(width, height, pixels)
+    if(pixels) {
+      onLoadImage(parseInt(platesWidth), parseInt(platesHeight), pixels)
+      onClose();
+    }
   }
 
   const handleLoadCancel = () => {
@@ -375,14 +408,14 @@ export default function FileLoad({ onLoadImage, ...props }) {
                     aria-label="Zoom in"
                     title="Zoom in"
                     isDisabled={!file || zoom >= 4}
-                    onClick={() => handleZoom(1)}
+                    onClick={() => handleZoom(0.5)}
                   />
                   <IconButton
                     icon={<AiOutlineZoomOut />}
                     aria-label="Zoom out"
                     title="Zoom out"
                     isDisabled={!file || zoom <= 1}
-                    onClick={() => handleZoom(-1)}
+                    onClick={() => handleZoom(-0.5)}
                   />
                 </Box>
               </Box>
@@ -417,7 +450,7 @@ export default function FileLoad({ onLoadImage, ...props }) {
             </Flex>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme='blue' onClick={handleLoadClick} isDisabled={true} >
+            <Button colorScheme='blue' onClick={handleLoadClick} isDisabled={pixels === null} >
               Load
             </Button>
             <Button onClick={handleLoadCancel} ml={3}>
