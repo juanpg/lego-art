@@ -1,6 +1,7 @@
-import { Button, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, useDisclosure } from "@chakra-ui/react";
+import { Flex, Button, SimpleGrid, Text, Icon, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, useDisclosure } from "@chakra-ui/react";
 import { useContext } from "react";
 import { LegoArtContext } from "../Context/LegoArtContext";
+import { BsFillCircleFill } from 'react-icons/bs'
 
 export default function Stats({pixels, ...props}) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -21,6 +22,7 @@ export default function Stats({pixels, ...props}) {
     });
   }
 
+  console.log(studsPerColor);
   const totalStuds = [...studsPerColor.values()].reduce((total, count) => total + count, 0);
 
   return (
@@ -42,7 +44,16 @@ export default function Stats({pixels, ...props}) {
           <ModalHeader>Stud count</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-
+            <SimpleGrid columns={4} spacing={5}>
+            {
+              colors.map(color => (
+                <Flex key={color} direction='row' alignItems='center'>
+                  <Icon as={BsFillCircleFill} color={color} mr={2} {...props} boxSize={5} />
+                  <Text display='inline-block'>{studsPerColor.get(color)}</Text>
+                </Flex>
+              ))
+            }
+            </SimpleGrid>
           </ModalBody>
           <ModalFooter>
             <Button onClick={onClose}>Close</Button>

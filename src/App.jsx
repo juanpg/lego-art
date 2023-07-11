@@ -61,7 +61,7 @@ function App() {
   }
 
   const buttonProps = {
-    fontSize: useBreakpointValue({ base: 'unset', md: '24px' }),
+    fontSize: useBreakpointValue({ base: 'unset', md: '20px' }),
     size: useBreakpointValue({ base: 'sm', md: 'md' })
   }
 
