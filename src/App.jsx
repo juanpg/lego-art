@@ -101,7 +101,7 @@ function App() {
                 <ButtonGroup>
                   <FileNew onLoadImage={handleLoadImage} {...buttonProps} />
                   <FileLoad onLoadImage={handleLoadImage} {...buttonProps} />
-                  <FileSave {...buttonProps} />
+                  <FileSave pixels={history[stepHistory]} {...buttonProps} />
                 </ButtonGroup>
                 <ButtonGroup>
                   <IconButton 
