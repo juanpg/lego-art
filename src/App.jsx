@@ -37,9 +37,12 @@ function App() {
   }
 
   const handleLoadImage = (newWidth, newHeight, newPixels) => {
+    if(!newPixels) {
+      newPixels = emptyHistory(newWidth, newHeight)[0];
+    }
     if(dimensions[0] !== newWidth || dimensions[1] !== newHeight) {
       onDimensionsChange(newWidth, newHeight);
-      setHistory(h => newPixels ? [newPixels] : emptyHistory(newWidth, newHeight))
+      setHistory(h => [newPixels])
       setStepHistory(sh => 0)
     } else {
       setHistory(h => [...h.slice(0, stepHistory + 1), newPixels]);
