@@ -22,7 +22,6 @@ export default function Stats({pixels, ...props}) {
     });
   }
 
-  console.log(studsPerColor);
   const totalStuds = [...studsPerColor.values()].reduce((total, count) => total + count, 0);
 
   return (
