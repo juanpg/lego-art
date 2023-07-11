@@ -43,10 +43,10 @@ const tools = {
     icon: <BsEyedropper />,
     label: 'Color Picker'
   },
-  'move': {
-    icon: <FaRegHandPointer />,
-    label: 'Move'
-  }
+  // 'move': {
+  //   icon: <FaRegHandPointer />,
+  //   label: 'Move'
+  // }
 };
 
 export const LegoArtContext = createContext({

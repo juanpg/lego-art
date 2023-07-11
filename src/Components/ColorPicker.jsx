@@ -44,11 +44,13 @@ export default function ColorPicker({...props}) {
           </Flex>
         </PopoverBody>
         <PopoverFooter>
+          {null && (
           <ButtonGroup>
             <Button size='xs' isDisabled>Add</Button>
             <Button size='xs' isDisabled>Remove</Button>
             <Button size='xs' isDisabled>Reset</Button>
           </ButtonGroup>
+          )}
         </PopoverFooter>
       </PopoverContent>
     </Popover>
