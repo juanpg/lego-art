@@ -1,11 +1,10 @@
-import { Box, ButtonGroup, Container, Divider, Flex, HStack, Heading, IconButton, Spacer, Stack, VStack, useColorMode, useColorModeValue, useBreakpointValue } from '@chakra-ui/react';
-import { useState, useContext, useEffect } from 'react';
+import { Box, ButtonGroup, Container, Flex, HStack, Heading, IconButton, Stack, VStack, useColorMode, useColorModeValue, useBreakpointValue } from '@chakra-ui/react';
+import { useState, useContext } from 'react';
 import { LuUndo2, LuRedo2, LuTrash2, LuMoon, LuSun } from 'react-icons/lu';
 import './App.css';
 
 import { LegoArtContext } from './Context/LegoArtContext';
 import Canvas from './Components/Canvas';
-import CanvasDimensions from './Components/CanvasDimensions';
 import ColorPicker from './Components/ColorPicker';
 import ToolPicker from './Components/ToolPicker';
 import FileNew from './Components/FileNew';
@@ -25,11 +24,6 @@ function App() {
   const [history, setHistory] = useState(() => emptyHistory(width, height));
   const [stepHistory, setStepHistory] = useState(0);
   const windowWidth = useWindowWidth();
-
-  // useEffect(() => {
-  //   setHistory(emptyHistory())
-  //   setStepHistory(0)
-  // }, [dimensions])
 
   const handleNewPixels = (newPixels) => {
     setHistory([...history.slice(0, stepHistory + 1), newPixels]);
@@ -79,7 +73,7 @@ function App() {
                 bg={useColorModeValue('gray.50', 'gray.900')}
                 py={2} px={4}
               >
-                <Heading fontSize={useBreakpointValue({base: 'lg', md: '2xl'})}>Lego Art Maker</Heading>
+                <Heading fontSize={useBreakpointValue({base: 'lg', md: '2xl'})}>LEGO&reg; Art Maker</Heading>
                 <ButtonGroup>
                   <IconButton
                     onClick={toggleColorMode}
@@ -152,9 +146,6 @@ function App() {
               </main>
             </Box>
           </Box>
-          <ButtonGroup>
-            
-          </ButtonGroup>
         </VStack>
       </Flex>
     </Container>

@@ -1,7 +1,6 @@
 import { useColorModeValue, useBreakpointValue } from "@chakra-ui/react";
 import { useContext, useEffect, useRef, useState } from "react";
 import { LegoArtContext } from "../Context/LegoArtContext";
-import { FaRegHandPointer, FaRegHandRock } from 'react-icons/fa';
 
 const getPixelCoords = (event, pixelsPerSquare) => {
   const rect = event.target.getBoundingClientRect();
@@ -20,13 +19,6 @@ export default function Canvas({currentPixels, onNewPixels }) {
   const [newPixels, setNewPixels] = useState(new Map)
   const { dimensions, currentTool, currentColor, onColorChange, squaresPerPlate, getPixelsPerSquare, drawPixel, zoomLevel } = useContext(LegoArtContext);
   const [ width, height ] = dimensions;
-
-  const plateSize = useBreakpointValue({
-    base: 288,
-    md: 480,
-    lg: 672,
-    xl: 768
-  });
 
   const pixelsPerSquare = getPixelsPerSquare(dimensions[0], dimensions[1], zoomLevel);
 

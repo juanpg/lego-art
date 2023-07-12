@@ -1,7 +1,7 @@
 import { useDisclosure, 
   Modal, ModalOverlay, ModalHeader, ModalContent, ModalBody, ModalFooter, ModalCloseButton,
   FormControl, FormLabel, FormErrorMessage, Input, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper,
-  Button, IconButton, Stack, Box, Heading, Image, Flex, Spacer, Divider, AspectRatio,
+  Button, IconButton, Box, Heading, Flex, Spacer, Divider,
   useBreakpointValue,
 } from "@chakra-ui/react";
 
@@ -9,7 +9,6 @@ import { useRef, useContext, useState, useEffect } from 'react';
 import { AiOutlineFileSearch as IconImage, AiOutlineZoomIn, AiOutlineZoomOut } from 'react-icons/ai';
 import { LegoArtContext } from "../Context/LegoArtContext";
 import Draggable from "react-draggable";
-// import { convert } from "chromatism";
 import { closest } from "color-diff";
 
 const rgbToHex = ({r, g, b}) => {
@@ -33,62 +32,11 @@ const hexToRgb = (hex) => {
   return { r, g, b };
 }
 
-const distanceBetweenColors = (color1, color2) => {
-  const {L: L1, a: a1, b: b1} = convert(color1).cielab;
-  const {L: L2, a: a2, b: b2} = convert(color2).cielab;
-
-  // 1994 formula
-  const deltaL = L1 - L2;
-  const deltaA = a1 - a2;
-  const deltaB = b1 - b2;
-  const c1 = Math.sqrt(a1 * a1 + b1 * b1);
-  const c2 = Math.sqrt(a2 * a2 + b2 * b2);
-  const deltaC = c1 - c2;
-  let deltaH = deltaA * deltaA + deltaB * deltaB - deltaC * deltaC;
-  deltaH = deltaH < 0 ? 0 : Math.sqrt(deltaH);
-  const sc = 1.0 + 0.045 * c1;
-  const sh = 1.0 + 0.015 * c1;
-  const deltaLKlsl = deltaL / (1.0);
-  const deltaCkcsc = deltaC / (sc);
-  const deltaHkhsh = deltaH / (sh);
-  const i = deltaLKlsl * deltaLKlsl + deltaCkcsc * deltaCkcsc + deltaHkhsh * deltaHkhsh;
-  return i < 0 ? 0 : Math.sqrt(i);
-
-
-  // 1976 formula
-  return Math.sqrt(
-    Math.pow(L2 - L1, 2) +
-    Math.pow(a2 - a1, 2) +
-    Math.pow(b2 - b1, 2)
-  );
-
-  // Euclidean distance with RGB colors
-  return Math.sqrt(
-    Math.pow(red1 - red2, 2) +
-    Math.pow(green1 - green2, 2) +
-    Math.pow(blue1 - blue2, 2)
-  );
-}
-
 const closestPaletteColor = (color, palette) => {
-  let closestColor = null;
-  let closestDistance = Number.MAX_VALUE;
-
   const rgb1 = hexToRgb(color);
   const rgbColors = palette.map(hexToRgb);
 
   return rgbToHex(closest(rgb1, rgbColors));
-
-  for(const paletteColor of palette) {
-    const distance = distanceBetweenColors(color, paletteColor);
-
-    if(distance < closestDistance) {
-      closestColor = paletteColor;
-      closestDistance = distance;
-    }
-  }
-
-  return closestColor;
 }
 
 const calculateMaxWidth = (windowWith, platesWidth, squaresPerPlate) => {

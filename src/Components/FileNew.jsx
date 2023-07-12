@@ -8,7 +8,7 @@ import { AiOutlineFileAdd as IconImage } from 'react-icons/ai'
 import { LegoArtContext } from "../Context/LegoArtContext";
 
 export default function FileNew({onLoadImage, ...props}) {
-  const { dimensions, onDimensionsChange } = useContext(LegoArtContext);
+  const { dimensions } = useContext(LegoArtContext);
   const [ width, setWidth ] = useState(dimensions[0]);
   const [ height, setHeight ] = useState(dimensions[1]);
   const { isOpen, onOpen, onClose } = useDisclosure();
